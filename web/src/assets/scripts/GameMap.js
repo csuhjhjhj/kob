@@ -1,5 +1,5 @@
 import { AcGameObject } from "./AcGameObject";
-import {Wall} from "./Wall"
+import { Wall } from "./Wall"
 import { Snake } from './Snake'
 export class GameMap extends AcGameObject {
     constructor(ctx, parent){
