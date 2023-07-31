@@ -12,9 +12,9 @@ import java.util.UUID;
 
 public class JwtUtil {
     //有效期14天
-    public static final long JWT_TTL = 1000L * 60 * 60 * 24 * 14;
+    public static final long JWT_TTL =  60 * 60 * 1000L * 24 * 14;
     //秘匙
-    public static final String JWT_KEY = "SDFGjhdsfalshdfHFdsjkdsfds121232131afasdfac";
+    public static final String JWT_KEY = "SDFGjhdsfalshdfHFdsjkdsfdkkkkks121232131afasdfac";
 
     public static String getUUID() {
         return UUID.randomUUID().toString().replaceAll("-", "");
