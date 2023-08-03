@@ -42,7 +42,6 @@ const step = timestamp => {
             obj.update();
         }
     }
-
     last_timestamp = timestamp;
     requestAnimationFrame(step)
 }
