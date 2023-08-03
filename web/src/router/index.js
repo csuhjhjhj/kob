@@ -49,7 +49,7 @@ const routes = [
   },
   {
     path:"/user/account/register",
-    name:"user_acount_register",
+    name:"user_account_register",
     component:UserAccountRegisterView
   }
 ]

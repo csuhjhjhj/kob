@@ -43,7 +43,12 @@ export default {
                 username:username.value,//ref变量取值使用value
                 password:password.value,
                 success(){
-                    router.push({name:'home'})//如果登录成功 跳转到name为home的页面中
+                    store.dispatch("getinfo",{
+                        success(){
+                            router.push({name:'home'})//如果登录成功 跳转到name为home的页面中
+                            console.log(store.state.user);//这里的user就是在store/index中导入的user:ModuleUser
+                        }
+                    })
                 },
                 error(){//如果登录失败，给用户返回一个提示
                     error_message.value = "用户名或者密码错误";
