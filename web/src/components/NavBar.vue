@@ -24,7 +24,11 @@
                     <router-link class="dropdown-item" :to="{name: 'user_bot_index'}">我的Bot</router-link>
                 </li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="#">退出</a></li>
+                <li>
+                  <router-link class="dropdown-item" href="#" :to="{name:'user_account_login'}" @click="logout">
+                    退出
+                  </router-link>
+              </li>
               </ul>
             </li>
           </ul>
@@ -48,15 +52,20 @@
 <script>
     import { useRoute } from 'vue-router'
     import { computed } from 'vue'
-    // import { useStore } from  'vuex'
+    import { useStore } from  'vuex'
     
     export default {
         setup() {
-            // const store = useStore();
+            const store = useStore();//取出全局变量store
             const route = useRoute();
-            let route_name = computed(() => route.name)
+            let route_name = computed(() => route.name)//调用user中的logout函数
+            //触发函数
+            const logout = () => {
+              store.dispatch("logout");
+            }
             return {
-                route_name
+                route_name,
+                logout
             }
         }
     }
