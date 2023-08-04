@@ -46,6 +46,9 @@ export default {
                     store.dispatch("getinfo",{
                         success(){
                             router.push({name:'home'})//如果登录成功 跳转到name为home的页面中
+                            console.log("输出store.state");
+                            console.log(store.state);
+                            console.log("输出store.state.user")
                             console.log(store.state.user);//这里的user就是在store/index中导入的user:ModuleUser
                         }
                     })
