@@ -1,5 +1,5 @@
 <template>
-    <ContentFieldVue>
+    <ContentFieldVue v-if="!$store.state.user.pulling_info">
         <div class="row  justify-content-md-center">
             <div class="col-3">
                 <!-- submit时触发login函数，并阻止默认行为 -->
@@ -36,7 +36,25 @@ export default {
         let username = ref("");//定义username 初始为空
         let password = ref("");//定义password
         let error_message = ref("");//表示是否成功登录
-
+        const jwt_token = localStorage.getItem("jwt_token");
+        
+        if(jwt_token){//若jwt_token存在
+            store.commit("updateToken",jwt_token);//将token更新为jwt_token
+            //判断jwt是否有效
+            store.dispatch("getinfo",{
+                success(){
+                    router.push({name:"home"});
+                    console.log("拉取完毕");
+                    store.commit("updatePullingInfo",false);//拉取结束
+                },
+                error(){ 
+                    store.commit("updatePullingInfo",false);
+                }
+            })
+        }
+        else{
+            store.commit("updatePullingInfo",false);
+        }
         const login = () => {//定义loginh函数，当页面提交时触发
             error_message.value = "";
             store.dispatch("login",{//使用dispatch来调用store/user.js中的action函数
