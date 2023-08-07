@@ -37,7 +37,6 @@ export default {
         let password = ref("");//定义password
         let error_message = ref("");//表示是否成功登录
         const jwt_token = localStorage.getItem("jwt_token");
-        
         if(jwt_token){//若jwt_token存在
             store.commit("updateToken",jwt_token);//将token更新为jwt_token
             //判断jwt是否有效

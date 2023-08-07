@@ -59,9 +59,6 @@ const routes = [
   {
     path:"/:catchAll(.*)",
     redirect:"/404/",
-    meta:{
-      requestAuth:false,
-    }
   },
   {
     path:"/user/account/login/",
