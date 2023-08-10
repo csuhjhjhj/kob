@@ -2,82 +2,29 @@ import { AcGameObject } from "./AcGameObject";
 import { Wall } from "./Wall"
 import { Snake } from './Snake'
 export class GameMap extends AcGameObject {
-    constructor(ctx, parent){
+    constructor(ctx, parent,store){
         super();
-
         this.ctx = ctx;
         this.parent = parent;
+        this.store = store;
         this.L = 0;
         this.rows = 13;
         this.cols = 14;
-        this.inner_walls_count = 20;//定义内部障碍物数量
+        this.inner_walls_count = 10;//定义内部障碍物数量
         this.walls = [];//用于保存障碍物,属于对象数组
         this.snakes = [
             new Snake({id: 0, color: "#4876EC", r: this.rows - 2, c: 1}, this),
             new Snake({id: 1, color: "#F94848", r: 1, c: this.cols - 2}, this),
         ];
-
     }
 
     //判断连通性
-    //参考题目:蛇形矩阵
-    check_connectivity(g, sx, sy, tx, ty){
-        if (sx == tx && sy == ty) return true;
-        g[sx][sy] = true;
-
-        let dx = [-1, 0, 1, 0];
-        let dy = [0, 1, 0, -1];
-        for(let i = 0; i < 4; i++){
-            let x = sx + dx[i];
-            let y = sy + dy[i];
-            if(!g[x][y] && this.check_connectivity(g, x, y, tx, ty))
-                return true;
-        }
-        return false;
-    }
-    //创建障碍物
+    
+    //画地图：创建障碍物
     create_walls(){
-        const g = [];//用bool数组来保存是否存在障碍物 初始置位false
-        for(let r = 0; r < this.rows; r++){
-            g[r] = [];
-            for(let c = 0; c < this.cols; c++){
-                g[r][c] = false;
-            }
-        }
-
-        //给四周加上障碍物
-        for(let r = 0; r < this.rows; r++){//给左右两侧设置为true
-            g[r][0]=true;
-            g[r][this.cols-1]=true;
-        }
-
-        for(let c = 0; c < this.cols; c++){//给上下两侧设置为true
-            g[0][c] = g[this.rows-1][c] = true;
-        }
-        
-        //在内部设置inner_walls_count个对称的障碍物
-        for(let i = 0; i < this.inner_walls_count / 2; i++){
-            for (let j = 0; j < 1000; j++) {
-                let r = parseInt(Math.random()*this.rows);
-                let c = parseInt(Math.random()*this.cols);
-                if (g[r][c] || g[this.rows - 1 - r][this.cols - 1 - c]) continue;
-                if(r == this.rows - 2 && c == 1 || r == 1 && c == this.cols-2)
-                    continue;//保证左上角和右下角不能有障碍物
-                
-                //成功设置一个障碍物后 直接退出当前for i++
-                g[r][c] = g[this.rows - 1 - r][this.cols - 1 - c] = true;
-                break;
-            }
-        }
-        //需要将状态g的副本传入check_connectivity
-        //深度拷贝一个对象:先转换成json再将json解析出来 就一定是一个新的东西
-        const copy_g = JSON.parse(JSON.stringify(g));
-
-        //如果地图不连通
-        //传入g以及起点和终点的横纵坐标
-        if(!this.check_connectivity(copy_g,this.rows-2,1,1,this.cols-2)) 
-            return false;
-
+        //直接将地图取出--后端传过来
+        // console.log(this.store)
+        const g = this.store.state.pk.gamemap;
         //创建障碍物对象 并添加到this.walls数组
         for(let r = 0; r < this.rows; r++){
             for(let c = 0; c < this.cols; c++){
@@ -86,8 +33,6 @@ export class GameMap extends AcGameObject {
                 }
             }
         }
-
-        return true;//如果连通  
     }
     add_listening_events() {
         this.ctx.canvas.focus();
@@ -106,10 +51,7 @@ export class GameMap extends AcGameObject {
     }
 
     start(){
-        for (let i = 0; i < 1000; i++) {
-            if(this.create_walls())
-            break;
-        }
+        this.create_walls();//不用循环1000次，因为直接接收的后端生成的
         this.add_listening_events();
     }
     update_size(){

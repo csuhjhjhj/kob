@@ -4,6 +4,7 @@ export default ({
 		socket:null,//存储前后端建立的connection
 		opponent_username:"",//对手名
 		opponent_photo:"",//对手头像
+		gamemap:null
 	},
 	mutations:{
 		updateSocket(state,socket){
@@ -15,6 +16,9 @@ export default ({
 		},
 		updateStatus(state,status){
 			state.status = status;
+		},
+		updateGamemap(state,gamemap){
+			state.gamemap = gamemap;
 		}
 	},
 	actions:{

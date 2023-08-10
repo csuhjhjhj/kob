@@ -40,8 +40,10 @@ export default {
           setTimeout(() => {
             store.commit("updateStatus", "playing")
           }, 2000);
+          store.commit("updateGamemap", data.gamemap)//更新地图
+          console.log("输出地图")
+          console.log(data.gamemap)
         }
-
       }
       socket.onclose = () => {
         console.log("disconnected!");
