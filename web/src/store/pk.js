@@ -1,4 +1,4 @@
-export default({
+export default ({ 
 	state:{
 		status:"matching",//matching表示匹配界面 playing表示对战界面
 		socket:null,//存储前后端建立的connection
