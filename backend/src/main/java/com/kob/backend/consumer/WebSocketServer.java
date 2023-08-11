@@ -22,14 +22,12 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @Component
 @ServerEndpoint("/websocket/{token}")//注意不要以'/'结尾
 public class WebSocketServer {
-
     private Session session = null;
     private User user;
-    private static ConcurrentHashMap<Integer,WebSocketServer>userConnectionInfo
+    public static ConcurrentHashMap<Integer,WebSocketServer>userConnectionInfo
             = new ConcurrentHashMap<>();
-
     private static UserMapper userMapper;
-
+    private Game game = null;
     //线程安全的Set作为匹配池
     private static CopyOnWriteArraySet<User>matchpool = new CopyOnWriteArraySet<>();
     private void startMatching(){
@@ -41,15 +39,28 @@ public class WebSocketServer {
             User user2 = iterator.next();
             matchpool.remove(user1);
             matchpool.remove(user2);
-            Game game = new Game(13,14,20);
+            Game game = new Game(13,14,20,user1.getId(),user2.getId());
             game.createMap();
+            // 将整局游戏赋值给链接对应的两个玩家上
+            userConnectionInfo.get(user1.getId()).game = game;
+            userConnectionInfo.get(user2.getId()).game = game;
             //分别给user1和user2传送消息告诉他们匹配成功了
             //通过user1的连接向user1发消息
+            JSONObject respGame = new JSONObject();
+            respGame.put("a_id",game.getPlayerA().getId());
+            respGame.put("a_sx",game.getPlayerA().getSx());
+            respGame.put("a_sy",game.getPlayerA().getSy());
+            respGame.put("b_id",game.getPlayerB().getId());
+            respGame.put("b_sx",game.getPlayerB().getSx());
+            respGame.put("b_sy",game.getPlayerB().getSy());
+            respGame.put("map",game.getG());//两名玩家的地图
+
+
             JSONObject resp1 = new JSONObject();
             resp1.put("event","start-matching");
             resp1.put("opponent_username",user2.getUsername());
             resp1.put("opponent_photo",user2.getPhoto());
-            resp1.put("gamemap",game.getG());
+            resp1.put("game",respGame);
             WebSocketServer webSocketServer1 = userConnectionInfo.get(user1.getId());//获取user1的连接
             webSocketServer1.sendMessage(resp1.toJSONString());
 
@@ -58,7 +69,7 @@ public class WebSocketServer {
             resp2.put("event","start-matching");
             resp2.put("opponent_username",user1.getUsername());
             resp2.put("opponent_photo",user1.getPhoto());
-            resp2.put("gamemap",game.getG());
+            resp2.put("game",respGame);
             WebSocketServer webSocketServer2 = userConnectionInfo.get(user2.getId());
             webSocketServer2.sendMessage(resp2.toJSONString());
         }
@@ -98,14 +109,17 @@ public class WebSocketServer {
     @OnMessage
     public void onMessage(String message,Session session) {//当做路由，用来分配任务
         // Server从Client接受信息时触发
-        System.out.println("Receive message");
+        System.out.println("Receive message!");
         JSONObject data = JSONObject.parseObject(message);//将字符串解析成JSON
-        String event = data.getString("event");
-        if("start-matching".equals(event)){//防止event为空的异常
+        String event = data.getString("event");//防止event为空的异常
+        if("start-matching".equals(event)){
             startMatching();
-        }
-        else if ("stop-matching".equals(event)) {
+        }else if("stop-matching".equals(event)){
             stopMatching();
+        }else if("move".equals(event)){
+            Integer direction = data.getInteger("direction");
+            System.out.println(direction);
+            move(direction);
         }
     }
     @OnError
@@ -123,4 +137,17 @@ public class WebSocketServer {
             }
         }
     }
+
+    private void move(Integer direction) {
+        //判断是A玩家还是B玩家在操作
+        if(game.getPlayerA().getId().equals(user.getId())){
+            game.setNextStepA(direction);
+        }else if(game.getPlayerB().getId().equals(user.getId())){
+            game.setNextStepB(direction);
+        }else{
+            Exception e = new Exception("Error");
+            e.printStackTrace();
+        }
+    }
+
 }

@@ -18,7 +18,6 @@ export default {
     const socketUrl = `ws://127.0.0.1:3000/websocket/${store.state.user.token}`;
     let socket = null;
     onMounted(() => {
-
       store.commit("updateOpponent", {
         username: "我的对手",
         photo: "https://cdn.acwing.com/media/article/image/2022/08/09/1_1db2488f17-anonymous.png",
@@ -30,6 +29,7 @@ export default {
       }
       socket.onmessage = msg => {
         const data = JSON.parse(msg.data);
+        console.log(msg);
         console.log(data);
         if (data.event === "start-matching") {
           store.commit("updateOpponent", {
@@ -40,7 +40,7 @@ export default {
           setTimeout(() => {
             store.commit("updateStatus", "playing")
           }, 2000);
-          store.commit("updateGamemap", data.gamemap)//更新地图
+          store.commit("updateGame", data.game)//更新地图
           console.log("输出地图")
           console.log(data.gamemap)
         }

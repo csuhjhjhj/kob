@@ -1,20 +1,91 @@
 package com.kob.backend.consumer.utils;
 
-import java.util.Random;
+import com.alibaba.fastjson.JSONObject;
+import com.kob.backend.consumer.WebSocketServer;
 
-public class Game {
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.concurrent.locks.ReentrantLock;
+
+public class Game extends Thread{
     final private Integer rows;
     final private Integer cols;
     final private Integer inner_walls_count;
     final private int[][] g;
-
+    private Player playerA,playerB;
+    private Integer nextStepA;
+    private Integer nextStepB;
     final private static int[] dx = {-1,0,1,0};
     final private static int[] dy = {0,1,0,-1};
-    public Game(Integer rows, Integer cols, Integer inner_walls_count) {
+    private String status = "playing";//游戏状态 playing-->finshed
+    private String loser = "";//all:平:A:A输 B:B输了
+    private ReentrantLock lock = new ReentrantLock();
+
+
+
+    private boolean nextStep(){
+        //等待两名玩家的下一步操作
+        //由于前端动画200ms才能画一个格子
+        //如果在此期间接收到的输入多于一步 只会留最后一步 多余的会被覆盖
+        //因此在每一个下一步都要先休息200ms
+        try {
+            Thread.sleep(200);
+        }catch(InterruptedException e){
+            e.printStackTrace();
+        }
+        //如果5秒内有玩家没有输入，就返回false
+        for(int i=0;i<5;i++){
+            try{
+                Thread.sleep(1000);
+                lock.lock();
+                try{
+                    if(nextStepA != null && nextStepB != null){
+                        playerA.getSteps().add(nextStepA);
+                        playerB.getSteps().add(nextStepB);
+                        return true;
+                    }
+                }finally {
+                    lock.unlock();
+                }
+            }catch (InterruptedException e){
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+    public void setNextStepA(Integer nextStepA) {
+        lock.lock();
+        try{
+            this.nextStepA = nextStepA;
+        }finally {
+            lock.unlock();
+        }
+    }
+    public void setNextStepB(Integer nextStepB){
+        lock.lock();
+        try {
+            this.nextStepB = nextStepB;
+        }finally {
+            lock.unlock();
+        }
+    }
+
+
+    public Game(Integer rows, Integer cols, Integer inner_walls_count,Integer idA,Integer idB) {
         this.rows = rows;
         this.cols = cols;
         this.inner_walls_count = inner_walls_count;
         this.g = new int[rows][cols];
+        playerA = new Player(idA,this.rows-2,1,new ArrayList<>());
+        playerB = new Player(idB,1,this.cols-2,new ArrayList<>());
+    }
+
+    public Player getPlayerA(){
+        return playerA;
+    }
+
+    public Player getPlayerB() {
+        return playerB;
     }
 
     public int[][] getG() {//返回地图
@@ -86,6 +157,67 @@ public class Game {
             }
         }
     }
+
+    public void run() {
+        for (int i = 0; i < 1000; i++) {//1000步之内游戏肯定结束
+            if (nextStep()) {
+                //如果获取两个玩家的下一步操作
+//                judge();
+                if (status.equals("playing")) {
+//                    sentMove();
+                } else {
+//                    sentResult();
+                    break;
+                }
+            } else {
+                status = "finished";
+                lock.lock();
+                try {
+                    if (nextStepA == null && nextStepB == null) {
+                        loser = "all";
+                    } else if (nextStepA == null) {
+                        loser = "A";
+                    } else {
+                        loser = "B";
+                    }
+                } finally {
+                    lock.lock();
+                }
+//                sentResult();
+                break;
+            }
+        }
+    }
+        private void sentAllmessage(String message){//工具函数:向两名玩家广播信息
+            WebSocketServer.userConnectionInfo.get(playerA.getId()).sendMessage(message);
+            WebSocketServer.userConnectionInfo.get(playerB.getId()).sendMessage(message);
+        }
+
+        private void sentMove(){
+            //向两个client广播玩家操作信息
+            lock.lock();
+            try{
+                JSONObject resp = new JSONObject();
+                resp.put("event","move");
+                resp.put("a_direction",nextStepA);
+                resp.put("b_direction",nextStepB);
+                nextStepA = nextStepB = null;//清空操作
+                sentAllmessage(resp.toJSONString());
+            }finally {
+                lock.unlock();
+            }
+        }
+
+        private void sentResult() {//向两个client公布结果信息
+            JSONObject resp = new JSONObject();
+            resp.put("event","result");//定义事件
+            resp.put("loser",loser);
+            sentAllmessage(resp.toJSONString());
+        }
+
+
+
+
 
 
 }
