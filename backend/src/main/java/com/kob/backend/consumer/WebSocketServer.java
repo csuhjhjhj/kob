@@ -44,6 +44,7 @@ public class WebSocketServer {
             // 将整局游戏赋值给链接对应的两个玩家上
             userConnectionInfo.get(user1.getId()).game = game;
             userConnectionInfo.get(user2.getId()).game = game;
+            game.start();
             //分别给user1和user2传送消息告诉他们匹配成功了
             //通过user1的连接向user1发消息
             JSONObject respGame = new JSONObject();
@@ -108,6 +109,7 @@ public class WebSocketServer {
     }
     @OnMessage
     public void onMessage(String message,Session session) {//当做路由，用来分配任务
+
         // Server从Client接受信息时触发
         System.out.println("Receive message!");
         JSONObject data = JSONObject.parseObject(message);//将字符串解析成JSON
@@ -117,6 +119,7 @@ public class WebSocketServer {
         }else if("stop-matching".equals(event)){
             stopMatching();
         }else if("move".equals(event)){
+            System.out.println("move!!!!!!");
             Integer direction = data.getInteger("direction");
             System.out.println(direction);
             move(direction);
@@ -141,8 +144,10 @@ public class WebSocketServer {
     private void move(Integer direction) {
         //判断是A玩家还是B玩家在操作
         if(game.getPlayerA().getId().equals(user.getId())){
+            System.out.println("A在操作");
             game.setNextStepA(direction);
         }else if(game.getPlayerB().getId().equals(user.getId())){
+            System.out.println("B在操作");
             game.setNextStepB(direction);
         }else{
             Exception e = new Exception("Error");

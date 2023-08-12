@@ -39,10 +39,19 @@ export default {
           // store.commit("updateStatus","playing")
           setTimeout(() => {
             store.commit("updateStatus", "playing")
-          }, 2000);
-          store.commit("updateGame", data.game)//更新地图
+          }, 200);
           console.log("输出地图")
-          console.log(data.gamemap)
+          console.log(data.game)
+          store.commit("updateGame", data.game)//更新地图
+        } else if (data.event === "move") {
+          console.log(data);
+          console.log("move");
+          const game = store.state.pk.gameObject;
+          const [snack0, snack1] = game.snakes;
+          snack0.set_direction(data.a_direction);
+          snack1.set_direction(data.b_direction);
+        } else if (data.event === "result") {
+          console.log(data);
         }
       }
       socket.onclose = () => {

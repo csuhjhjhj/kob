@@ -13,8 +13,8 @@ public class Game extends Thread{
     final private Integer inner_walls_count;
     final private int[][] g;
     private Player playerA,playerB;
-    private Integer nextStepA;
-    private Integer nextStepB;
+    private Integer nextStepA = null;
+    private Integer nextStepB = null;
     final private static int[] dx = {-1,0,1,0};
     final private static int[] dy = {0,1,0,-1};
     private String status = "playing";//游戏状态 playing-->finshed
@@ -31,12 +31,13 @@ public class Game extends Thread{
         try {
             Thread.sleep(200);
         }catch(InterruptedException e){
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        //如果5秒内有玩家没有输入，就返回false
-        for(int i=0;i<5;i++){
+        System.out.println("nextStep函数");
+        //如果10秒内有玩家没有输入，就返回false
+        for(int i=0;i<100;i++){
             try{
-                Thread.sleep(1000);
+                Thread.sleep(100);
                 lock.lock();
                 try{
                     if(nextStepA != null && nextStepB != null){
@@ -115,6 +116,7 @@ public class Game extends Thread{
     }
 
     private boolean draw(){//绘制地图
+        System.out.println("随机绘制地图");
         for(int i=0;i<this.rows;i++){
             for(int j=0;j<this.cols;j++){
                 g[i][j]=0;//0 表示 可通行区域 1表示障碍物
@@ -158,15 +160,18 @@ public class Game extends Thread{
         }
     }
 
+    @Override
     public void run() {
+        System.out.println("执行了run函数");
         for (int i = 0; i < 1000; i++) {//1000步之内游戏肯定结束
             if (nextStep()) {
                 //如果获取两个玩家的下一步操作
 //                judge();
+                System.out.println("获取到nextstep");
                 if (status.equals("playing")) {
-//                    sentMove();
+                    sentMove();
                 } else {
-//                    sentResult();
+                    sentResult();
                     break;
                 }
             } else {
@@ -181,9 +186,9 @@ public class Game extends Thread{
                         loser = "B";
                     }
                 } finally {
-                    lock.lock();
+                    lock.unlock();
                 }
-//                sentResult();
+                sentResult();
                 break;
             }
         }
@@ -195,6 +200,7 @@ public class Game extends Thread{
 
         private void sentMove(){
             //向两个client广播玩家操作信息
+            System.out.println("发送move消息");
             lock.lock();
             try{
                 JSONObject resp = new JSONObject();
