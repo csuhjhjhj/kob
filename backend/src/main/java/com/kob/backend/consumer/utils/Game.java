@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.kob.backend.consumer.WebSocketServer;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -166,7 +167,7 @@ public class Game extends Thread{
         for (int i = 0; i < 1000; i++) {//1000步之内游戏肯定结束
             if (nextStep()) {
                 //如果获取两个玩家的下一步操作
-//                judge();
+                judge();
                 System.out.println("获取到nextstep");
                 if (status.equals("playing")) {
                     sentMove();
@@ -219,6 +220,49 @@ public class Game extends Thread{
             resp.put("event","result");//定义事件
             resp.put("loser",loser);
             sentAllmessage(resp.toJSONString());
+        }
+
+        private boolean check_valid(List<Cell>cellsA,List<Cell>cellsB){
+            int n = cellsA.size();
+            Cell cell = cellsA.get(n-1);//取到A的最后一步
+            //三种不合法操作: A撞墙,A撞A,A撞B
+            //A撞墙
+            if(g[cell.getX()][cell.getY()] == 1)
+            {
+                return false;
+            }
+            //A撞A
+            for(int i=0;i<n-1;i++)
+            {
+                if(cellsA.get(i).getX().equals(cell.getX())&&cellsA.get(i).getY().equals(cell.getY())){
+                    return false;
+                }
+            }
+            //A撞B
+            for(int i=0;i<n-1;i++){
+                if(cellsB.get(i).getX().equals(cell.getX())&&cellsB.get(i).getY().equals(cell.getY())){
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private void judge() {
+            List<Cell>cellsA = playerA.getCells();
+            List<Cell>cellsB = playerB.getCells();
+            //判断两名玩家最后一步操作是否合法
+            boolean validA = check_valid(cellsA,cellsB);
+            boolean validB = check_valid(cellsB,cellsA);
+            if(!validA || !validB){
+                status = "finished";
+                if(validA){
+                    loser = "B";
+                }else if(validB){
+                    loser = "A";
+                }else{
+                    loser = "all";
+                }
+            }
         }
 
 
