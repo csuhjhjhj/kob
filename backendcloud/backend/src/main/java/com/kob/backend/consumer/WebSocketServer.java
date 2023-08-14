@@ -10,6 +10,9 @@ import com.kob.backend.mapper.UserMapper;
 import com.kob.backend.pojo.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
@@ -32,62 +35,35 @@ public class WebSocketServer {
     public static RecordMapper recordMapper;
     //线程安全的Set作为匹配池
     private static CopyOnWriteArraySet<User>matchpool = new CopyOnWriteArraySet<>();
-
-
+    private final static String addPlayerUrl = "http://127.0.0.1:3001/player/add/";
+    private final static String removePLayerUrl = "http://127.0.0.1:3001/player/remove/";
+    private static RestTemplate restTemplate;
     private void startMatching(){
-        System.out.println("start matching");
-        matchpool.add(this.user);
-        while (matchpool.size() >= 2){
-            Iterator<User> iterator = matchpool.iterator();
-            User user1 = iterator.next();
-            User user2 = iterator.next();
-            matchpool.remove(user1);
-            matchpool.remove(user2);
-            Game game = new Game(13,14,20,user1.getId(),user2.getId());
-            game.createMap();
-            // 将整局游戏赋值给链接对应的两个玩家上
-            userConnectionInfo.get(user1.getId()).game = game;
-            userConnectionInfo.get(user2.getId()).game = game;
-            game.start();
-            //分别给user1和user2传送消息告诉他们匹配成功了
-            //通过user1的连接向user1发消息
-            JSONObject respGame = new JSONObject();
-            respGame.put("a_id",game.getPlayerA().getId());
-            respGame.put("a_sx",game.getPlayerA().getSx());
-            respGame.put("a_sy",game.getPlayerA().getSy());
-            respGame.put("b_id",game.getPlayerB().getId());
-            respGame.put("b_sx",game.getPlayerB().getSx());
-            respGame.put("b_sy",game.getPlayerB().getSy());
-            respGame.put("map",game.getG());//两名玩家的地图
+        System.out.println("开始匹配");
+        MultiValueMap<String,String>data = new LinkedMultiValueMap<>();
+        System.out.println(this.user.getId().toString());
+        System.out.println(this.user.getRating().toString());
 
-
-            JSONObject resp1 = new JSONObject();
-            resp1.put("event","start-matching");
-            resp1.put("opponent_username",user2.getUsername());
-            resp1.put("opponent_photo",user2.getPhoto());
-            resp1.put("game",respGame);
-            WebSocketServer webSocketServer1 = userConnectionInfo.get(user1.getId());//获取user1的连接
-            webSocketServer1.sendMessage(resp1.toJSONString());
-
-            //通过user2的连接向user2发消息
-            JSONObject resp2 = new JSONObject();
-            resp2.put("event","start-matching");
-            resp2.put("opponent_username",user1.getUsername());
-            resp2.put("opponent_photo",user1.getPhoto());
-            resp2.put("game",respGame);
-            WebSocketServer webSocketServer2 = userConnectionInfo.get(user2.getId());
-            webSocketServer2.sendMessage(resp2.toJSONString());
-        }
+        data.add("user_id",this.user.getId().toString());
+        data.add("rating",this.user.getRating().toString());
+        //向MatchingSystem发请求
+        restTemplate.postForObject(addPlayerUrl,data,String.class);
     }
     private void stopMatching(){
         System.out.println("stop matching");
-        matchpool.remove(this.user);
+        MultiValueMap<String,String>data = new LinkedMultiValueMap<>();
+        data.add("user_id",this.user.getId().toString());
+        restTemplate.postForObject(removePLayerUrl,data,String.class);
     }
     @Autowired
     public void setUserMapper(UserMapper userMapper) {
         WebSocketServer.userMapper = userMapper;
     }
 
+    @Autowired
+    public void setRestTemplate(RestTemplate restTemplate){
+        WebSocketServer.restTemplate = restTemplate;
+    }
     @Autowired
     public void setRecordMapper(RecordMapper recordMapper){
         WebSocketServer.recordMapper = recordMapper;
@@ -118,7 +94,6 @@ public class WebSocketServer {
     }
     @OnMessage
     public void onMessage(String message,Session session) {//当做路由，用来分配任务
-
         // Server从Client接受信息时触发
         System.out.println("Receive message!");
         JSONObject data = JSONObject.parseObject(message);//将字符串解析成JSON
