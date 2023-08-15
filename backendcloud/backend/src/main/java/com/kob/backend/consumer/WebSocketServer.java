@@ -139,4 +139,59 @@ public class WebSocketServer {
         }
     }
 
+    public static void startGame(Integer aId,Integer bId){
+        User userA = userMapper.selectById(aId);
+        User userB = userMapper.selectById(bId);
+        Game game = new Game(13,14,20,userA.getId(),userB.getId());
+        game.createMap();
+        //game属于A和B两个玩家，因此需要赋值给A和B两名玩家对应的链接上
+        if(userConnectionInfo.get(userA.getId()) != null)
+        {
+            userConnectionInfo.get(userA.getId()).game = game;
+        }
+        if(userConnectionInfo.get(userB.getId())!=null)
+        {
+            userConnectionInfo.get(userB.getId()).game = game;
+        }
+
+
+
+        game.start();
+        JSONObject respGame = new JSONObject();
+        respGame.put("a_id",game.getPlayerA().getId());
+        respGame.put("a_sx",game.getPlayerA().getSx());
+        respGame.put("a_sy",game.getPlayerA().getSy());
+        respGame.put("b_id",game.getPlayerB().getId());
+        respGame.put("b_sx",game.getPlayerB().getSx());
+        respGame.put("b_sy",game.getPlayerB().getSy());
+        respGame.put("map",game.getG());//两名玩家的地图一致
+
+        //分别给userA和userB传送消息告诉他们匹配成功了
+        //通过userA的连接向userA发消息
+        JSONObject respA = new JSONObject();
+        respA.put("event","start-matching");
+        respA.put("opponent_username",userB.getUsername());
+        respA.put("opponent_photo",userB.getPhoto());
+        respA.put("game",respGame);
+        WebSocketServer webSocketServer1 = userConnectionInfo.get(userA.getId());//获取user1的连接
+        if(webSocketServer1 != null)
+        {
+            webSocketServer1.sendMessage(respA.toJSONString());
+        }
+
+
+        //通过userB的连接向userB发消息
+        JSONObject respB = new JSONObject();
+        respB.put("event","start-matching");
+        respB.put("opponent_username",userA.getUsername());
+        respB.put("opponent_photo",userA.getPhoto());
+        respB.put("game",respGame);
+        WebSocketServer webSocketServer2 = userConnectionInfo.get(userB.getId());
+        if(webSocketServer2 != null)
+        {
+            webSocketServer2.sendMessage(respB.toJSONString());
+        }
+
+    }
+
 }
