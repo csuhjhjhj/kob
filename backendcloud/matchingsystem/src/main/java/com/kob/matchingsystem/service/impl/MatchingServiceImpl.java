@@ -10,9 +10,9 @@ public class MatchingServiceImpl implements MatchingService {
     //加载匹配池
     public final static MatchingPool matchingPool = new MatchingPool();
     @Override
-    public String addPlayer(Integer userId, Integer rating) {
+    public String addPlayer(Integer userId, Integer rating,Integer botId) {
         System.out.println("add player" + userId + " " + rating);
-        matchingPool.addPlayer(userId,rating);
+        matchingPool.addPlayer(userId,rating,botId);
         return "add player success";
     }
 

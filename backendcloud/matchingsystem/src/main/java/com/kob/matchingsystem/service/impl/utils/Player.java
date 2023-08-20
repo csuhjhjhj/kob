@@ -13,5 +13,6 @@ import javax.annotation.sql.DataSourceDefinition;
 public class Player {
     private Integer userId;
     private Integer rating;
+    private Integer botId;
     private Integer waitingTime;//等待时间
 }
