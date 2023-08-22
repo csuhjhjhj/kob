@@ -7,6 +7,7 @@ import NotFound from "../views/error/NotFound"
 import UserAccountLoginView from "../views/user/account/UserAccountLoginView"
 import UserAccountRegisterView from "../views/user/account/UserAccountRegisterView"
 import store from "../store/index"
+import RecordContentView from '../views/record/RecordContentView.vue'
 const routes = [
   {
     path:"/",
@@ -74,6 +75,14 @@ const routes = [
     component:UserAccountRegisterView,
     meta:{
       requestAuth:false,
+    }
+  },
+  {
+    path:"/record/:recordId",
+    name:"record_content",
+    component:RecordContentView,
+    meta:{
+      requestAuth:true
     }
   }
 ]

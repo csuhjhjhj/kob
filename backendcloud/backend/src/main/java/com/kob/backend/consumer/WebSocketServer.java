@@ -32,7 +32,7 @@ public class WebSocketServer {
     private User user;
     public static ConcurrentHashMap<Integer,WebSocketServer>userConnectionInfo
             = new ConcurrentHashMap<>();
-    private static UserMapper userMapper;
+    public static UserMapper userMapper;
     public   Game game = null;
     public static RecordMapper recordMapper;
     //线程安全的Set作为匹配池
