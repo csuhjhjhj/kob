@@ -1,12 +1,9 @@
-export default {
+export default ({
 	state:{
 			is_record:false,
 			a_steps:"",
 			b_steps:"",
 			record_loser:"",//多个store文件的state数据名不能重复
-	},
-	getters:{
-
 	},
 	mutations:{
 			updateIsRecord(state,is_record) {
@@ -26,4 +23,4 @@ export default {
 	modules:{
 
 	}
-}
+})
