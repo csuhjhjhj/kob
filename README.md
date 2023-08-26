@@ -6,7 +6,7 @@
 
 ## 项目结构
 
-![image-20230824234010122](/Users/hj/Library/Application Support/typora-user-images/image-20230824234010122.png)
+![image-20230824234010122](https://github.com/csuhjhjhj/images/blob/master/kob/%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84%E5%9B%BE.png)
 
 ### 实现模块
 
