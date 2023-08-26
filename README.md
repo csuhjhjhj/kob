@@ -12,7 +12,7 @@
 #### PK界面
 
 ##### 匹配界面(微服务)
-![image-20230824234010122](https://github.com/csuhjhjhj/images/blob/master/kob/%E5%BE%AE%E6%9C%8D%E5%8A%A1.png)
+![image-20230824234010122](https://github.com/csuhjhjhj/images/blob/master/kob/%E5%8C%B9%E9%85%8D%E7%95%8C%E9%9D%A2.png)
 
 ##### 实况直播(`websocket`)
 
